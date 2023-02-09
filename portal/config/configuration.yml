@@ -1,0 +1,85 @@
+# See https://github.com/authelia/authelia/blob/master/config.template.yml for more configurations
+
+# This secret can also be set using the env variables AUTHELIA_JWT_SECRET_FILE
+# jwt_secret: <secret_value>
+
+default_redirection_url: https://secured.example.com
+
+server:
+  host: 0.0.0.0
+  port: 9091
+
+log:
+  level: debug
+
+totp:
+  issuer: "Authelia"
+
+authentication_backend:
+  file:
+    path: /config/users_database.yml
+  password_reset:
+    # Disable both the HTML element and the API for reset password functionality.
+    disable: false
+
+access_control:
+  # Default policy can either be 'bypass', 'one_factor', 'two_factor' or 'deny'
+  default_policy: deny
+  rules:
+    - domain: secured.example.com
+      policy: two_factor
+
+session:
+  # This secret can also be set using the env variables AUTHELIA_SESSION_SECRET_FILE
+  # secret: <secret_value>
+  domain: example.com
+
+  # cookies:
+  #   - name: authelia_session
+  #     domain: example.com # Should match whatever your root protected domain is
+  #     expiration: 3600 # 1 hour
+  #     inactivity: 300 # 5 minutes
+  #     authelia_url: https://portal.example.com
+  #     same_site: lax
+
+  redis:
+    host: redis
+    port: 6379
+    # This secret can also be set using the env variables AUTHELIA_SESSION_REDIS_PASSWORD_FILE
+    # password: <secret_value>
+
+regulation:
+  max_retries: 3
+  find_time: 2m
+  ban_time: 5m
+
+storage:
+  # This secret can also be set using the env variables AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE
+  # encryption_key: <secret_value>
+  local:
+    path: /config/db.sqlite3
+
+password_policy:
+  standard:
+    enabled: true
+    min_length: 12
+    max_length: 0
+    require_uppercase: true
+    require_lowercase: true
+    require_number: true
+    require_special: false
+  # zxcvbn:
+  #   enabled: true
+  #   min_score: 3
+
+notifier:
+  disable_startup_check: true
+  filesystem:
+    filename: /config/notification.txt
+  # smtp:
+  #   username: authelia@mail.example.com
+  #   # This secret can also be set using the env variables AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE
+  #   # password: <secret_value>
+  #   host: mail.example.com
+  #   port: 587
+  #   sender: "Authelia <authelia@mail.example.com>"

@@ -1,0 +1,50 @@
+version: "3.8"
+
+networks:
+  net:
+    driver: bridge
+
+services:
+  authelia:
+    image: authelia/authelia:latest
+    container_name: authelia_portal
+    env_file:
+      - ./.env
+    volumes:
+      - "./portal/config:/config"
+      - "/etc/timezone:/etc/timezone:ro"
+      - "/etc/localtime:/etc/localtime:ro"
+    networks:
+      - net
+    ports:
+      - "127.0.0.1:9091:9091"
+    restart: unless-stopped
+
+  redis:
+    image: redis:alpine
+    container_name: authelia_redis
+    env_file:
+      - ./.env
+    volumes:
+      - "./redis/data:/data"
+      - "/etc/timezone:/etc/timezone:ro"
+      - "/etc/localtime:/etc/localtime:ro"
+    networks:
+      - net
+    command:
+      [
+        "redis-server",
+        "--requirepass",
+        "${AUTHELIA_SESSION_REDIS_PASSWORD}",
+        "--appendonly",
+        "yes"
+      ]
+    expose:
+      - 6379
+    restart: unless-stopped
+    healthcheck:
+      test: redis-cli --no-auth-warning -a ${AUTHELIA_SESSION_REDIS_PASSWORD} --raw incr ping
+      interval: 60s
+      timeout: 5s
+      retries: 2
+      start_period: 30s
